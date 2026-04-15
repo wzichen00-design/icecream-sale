@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "雪糕批发店",
+  "enablePullDownRefresh": true,
+  "onReachBottomDistance": 100,
+  "usingComponents": {}
+}

@@ -1,0 +1,161 @@
+<view class="container">
+  <view wx:if="{{checking}}" class="checking">
+    <text>验证权限中...</text>
+  </view>
+
+  <view wx:elif="{{!hasPermission}}" class="no-permission">
+    <text class="icon">🔒</text>
+    <text class="title">无访问权限</text>
+    <text class="desc">您不是管理员，无法访问商品管理功能</text>
+    <text class="tip">如需开通权限，请联系店主</text>
+  </view>
+
+  <block wx:else>
+    <view class="header">
+      <view class="search-bar">
+        <view class="search-input-wrap">
+          <text class="search-icon">🔍</text>
+          <input 
+            class="search-input" 
+            placeholder="搜索商品名称"
+            value="{{searchKeyword}}"
+            bindinput="onSearchInput"
+          />
+          <text class="clear-btn" wx:if="{{searchKeyword}}" bindtap="clearSearch">×</text>
+        </view>
+        <button class="add-btn" bindtap="goToAddProduct">+ 发布</button>
+      </view>
+
+      <scroll-view class="category-tabs" scroll-x>
+        <view 
+          class="tab-item {{currentCategory === '' ? 'active' : ''}}"
+          bindtap="onCategoryFilter"
+          data-category=""
+        >全部</view>
+        <view 
+          class="tab-item {{currentCategory === item ? 'active' : ''}}"
+          wx:for="{{categories}}"
+          wx:key="*this"
+          bindtap="onCategoryFilter"
+          data-category="{{item}}"
+        >{{item}}</view>
+      </scroll-view>
+    </view>
+
+    <view wx:if="{{loading}}" class="loading">
+      <text>加载中...</text>
+    </view>
+
+    <view wx:elif="{{products.length === 0}}" class="empty">
+      <text class="empty-icon">📦</text>
+      <text class="empty-text">暂无商品</text>
+      <button class="empty-btn" bindtap="goToAddProduct">发布第一个商品</button>
+    </view>
+
+    <view wx:else class="product-list">
+      <view class="product-item" wx:for="{{products}}" wx:key="_id">
+        <image 
+          class="product-image" 
+          src="{{item.fileID}}" 
+          mode="aspectFill"
+          bindtap="previewImage"
+          data-url="{{item.fileID}}"
+        />
+        <view class="product-info">
+          <view class="product-header">
+            <text class="product-name">{{item.name}}</text>
+            <text class="product-category" wx:if="{{item.category}}">{{item.category}}</text>
+          </view>
+          <text class="product-spec">{{item.spec}}</text>
+          <text class="product-desc">{{item.description || '暂无介绍'}}</text>
+          <view class="product-footer">
+            <text class="product-time">{{item.createTimeFormatted}}</text>
+            <view class="product-actions">
+              <view class="action-btn edit" bindtap="showEditModal" data-product="{{item}}">编辑</view>
+              <view class="action-btn delete" bindtap="deleteProduct" data-product="{{item}}">删除</view>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{loadingMore}}" class="loading-more">
+      <text>加载更多...</text>
+    </view>
+
+    <view wx:if="{{!hasMore && products.length > 0}}" class="no-more">
+      <text>— 共 {{products.length}} 个商品 —</text>
+    </view>
+  </block>
+</view>
+
+<view class="modal-mask" wx:if="{{showEditModal}}" bindtap="hideEditModal">
+  <view class="modal-content" catchtap="">
+    <view class="modal-header">
+      <text class="modal-title">编辑商品</text>
+      <view class="modal-close" bindtap="hideEditModal">×</view>
+    </view>
+    <view class="modal-body">
+      <view class="form-item" catchtap="preventBubble">
+        <text class="label">商品名称 *</text>
+        <input class="input" value="{{editForm.name}}" bindinput="onEditInput" data-field="name" placeholder="请输入商品名称" />
+      </view>
+      <view class="form-item" catchtap="preventBubble">
+        <text class="label">商品规格 *</text>
+        <input class="input" value="{{editForm.spec}}" bindinput="onEditInput" data-field="spec" placeholder="请输入商品规格" />
+      </view>
+      <view class="form-item" catchtap="preventBubble">
+        <text class="label">商品分类</text>
+        <picker mode="selector" range="{{categories}}" bindchange="onCategoryChange">
+          <view class="picker">{{editForm.category || '请选择分类'}}</view>
+        </picker>
+      </view>
+      <view class="form-item" catchtap="preventBubble">
+        <text class="label">商品介绍</text>
+        <textarea class="textarea" value="{{editForm.description}}" bindinput="onEditInput" data-field="description" placeholder="请输入商品介绍" />
+      </view>
+      <view class="form-item" catchtap="preventBubble">
+        <text class="label">商品图片 <text class="label-tip">(最多9张)</text></text>
+        <view class="image-list">
+          <block wx:for="{{editForm.existingImages}}" wx:key="*this">
+            <view class="image-item">
+              <image 
+                class="preview-image" 
+                src="{{item}}"
+                mode="aspectFill"
+                catchtap="previewEditImage"
+                data-index="{{index}}"
+              />
+              <view class="delete-btn" catchtap="deleteEditImage" data-index="{{index}}">
+                <text>×</text>
+              </view>
+            </view>
+          </block>
+          <block wx:for="{{editForm.newImages}}" wx:key="*this">
+            <view class="image-item new-image">
+              <image 
+                class="preview-image" 
+                src="{{item}}"
+                mode="aspectFill"
+                catchtap="previewEditImage"
+                data-index="{{editForm.existingImages.length + index}}"
+              />
+              <view class="delete-btn" catchtap="deleteEditImage" data-index="{{editForm.existingImages.length + index}}">
+                <text>×</text>
+              </view>
+              <view class="new-tag">新</view>
+            </view>
+          </block>
+          <view class="add-image" wx:if="{{editForm.existingImages.length + editForm.newImages.length < 9}}" catchtap="chooseEditImage">
+            <text class="add-icon">+</text>
+            <text class="add-text">添加</text>
+          </view>
+        </view>
+      </view>
+    </view>
+    <view class="modal-footer">
+      <button class="cancel-btn" bindtap="hideEditModal">取消</button>
+      <button class="confirm-btn" bindtap="submitEdit">保存</button>
+    </view>
+  </view>
+</view>

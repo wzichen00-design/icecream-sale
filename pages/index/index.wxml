@@ -1,0 +1,162 @@
+<view class="container">
+  <view class="header">
+    <text class="title">🍦 雪糕批发</text>
+    <text class="subtitle">新鲜直达 品质保证</text>
+  </view>
+
+  <view class="search-bar">
+    <view class="search-input-wrap">
+      <text class="search-icon">🔍</text>
+      <input 
+        class="search-input" 
+        placeholder="搜索商品名称"
+        value="{{searchKeyword}}"
+        bindinput="onSearchInput"
+      />
+      <text class="clear-btn" wx:if="{{searchKeyword}}" bindtap="clearSearch">×</text>
+    </view>
+    <view class="category-filter">
+      <picker mode="selector" range="{{categories}}" value="{{categoryIndex}}" bindchange="onCategoryChange">
+        <view class="picker-btn">{{categories[categoryIndex]}} ▼</view>
+      </picker>
+    </view>
+  </view>
+
+  <view wx:if="{{loading}}" class="skeleton-container">
+    <view class="skeleton-waterfall">
+      <view class="skeleton-column">
+        <view class="skeleton-card">
+          <view class="skeleton-image skeleton-animate"></view>
+          <view class="skeleton-text skeleton-animate"></view>
+          <view class="skeleton-text short skeleton-animate"></view>
+        </view>
+        <view class="skeleton-card">
+          <view class="skeleton-image skeleton-animate"></view>
+          <view class="skeleton-text skeleton-animate"></view>
+          <view class="skeleton-text short skeleton-animate"></view>
+        </view>
+      </view>
+      <view class="skeleton-column">
+        <view class="skeleton-card">
+          <view class="skeleton-image skeleton-animate"></view>
+          <view class="skeleton-text skeleton-animate"></view>
+          <view class="skeleton-text short skeleton-animate"></view>
+        </view>
+        <view class="skeleton-card">
+          <view class="skeleton-image skeleton-animate"></view>
+          <view class="skeleton-text skeleton-animate"></view>
+          <view class="skeleton-text short skeleton-animate"></view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:elif="{{products.length === 0}}" class="empty">
+    <text class="empty-icon">📭</text>
+    <text class="empty-text">暂无商品</text>
+    <text class="empty-tip">请尝试其他搜索条件</text>
+  </view>
+
+  <view wx:else class="waterfall">
+    <view class="waterfall-column left-column">
+      <view 
+        class="product-card" 
+        wx:for="{{leftList}}" 
+        wx:key="_id"
+        bindtap="showProductDetail"
+        data-product="{{item}}"
+      >
+        <image 
+          class="product-image" 
+          src="{{item.fileID}}" 
+          mode="widthFix"
+          lazy-load
+          catchtap="previewImage"
+          data-url="{{item.fileID}}"
+        />
+        <view class="product-info">
+          <text class="product-name">{{item.name}}</text>
+          <text class="product-category" wx:if="{{item.category}}">{{item.category}}</text>
+          <text class="product-spec">{{item.spec}}</text>
+          <text class="product-desc">{{item.description}}</text>
+        </view>
+      </view>
+    </view>
+    
+    <view class="waterfall-column right-column">
+      <view 
+        class="product-card" 
+        wx:for="{{rightList}}" 
+        wx:key="_id"
+        bindtap="showProductDetail"
+        data-product="{{item}}"
+      >
+        <image 
+          class="product-image" 
+          src="{{item.fileID}}" 
+          mode="widthFix"
+          lazy-load
+          catchtap="previewImage"
+          data-url="{{item.fileID}}"
+        />
+        <view class="product-info">
+          <text class="product-name">{{item.name}}</text>
+          <text class="product-category" wx:if="{{item.category}}">{{item.category}}</text>
+          <text class="product-spec">{{item.spec}}</text>
+          <text class="product-desc">{{item.description}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{loadingMore}}" class="loading-more">
+    <text>加载更多...</text>
+  </view>
+
+  <view wx:if="{{!hasMore && products.length > 0}}" class="no-more">
+    <text>— 已经到底了 —</text>
+  </view>
+</view>
+
+<view class="detail-modal" wx:if="{{showDetail}}" bindtap="hideDetail">
+  <view class="detail-content" catchtap="stopPropagation">
+    <view class="close-btn" bindtap="hideDetail">
+      <text>×</text>
+    </view>
+    <view class="detail-images-wrap" wx:if="{{currentProduct.fileIDs && currentProduct.fileIDs.length > 1}}">
+      <scroll-view scroll-x class="detail-images">
+        <view class="images-scroll">
+          <image 
+            class="detail-image" 
+            wx:for="{{currentProduct.fileIDs}}" 
+            wx:key="*this"
+            src="{{item}}" 
+            mode="aspectFill"
+            catchtap="previewDetailImage"
+            data-url="{{item}}"
+            data-urls="{{currentProduct.fileIDs}}"
+          />
+        </view>
+      </scroll-view>
+    </view>
+    <view class="detail-single-image" wx:else>
+      <image 
+        class="single-image" 
+        src="{{currentProduct.fileID}}" 
+        mode="widthFix"
+        catchtap="previewDetailImage"
+        data-url="{{currentProduct.fileID}}"
+        data-urls="{{currentProduct.fileIDs || [currentProduct.fileID]}}"
+      />
+    </view>
+    <view class="detail-info">
+      <text class="detail-name">{{currentProduct.name}}</text>
+      <text class="detail-category" wx:if="{{currentProduct.category}}">分类：{{currentProduct.category}}</text>
+      <text class="detail-spec">规格：{{currentProduct.spec}}</text>
+      <text class="detail-desc">{{currentProduct.description}}</text>
+      <view class="detail-time">
+        <text>发布时间：{{currentProduct.createTimeFormatted || '暂无'}}</text>
+      </view>
+    </view>
+  </view>
+</view>
