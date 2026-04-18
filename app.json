@@ -2,7 +2,8 @@
   "pages": [
     "pages/index/index",
     "pages/manage/manage",
-    "pages/admin/admin"
+    "pages/admin/admin",
+    "pages/adminSettings/adminSettings"
   ],
   "window": {
     "backgroundTextStyle": "light",

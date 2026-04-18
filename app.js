@@ -1,68 +1,55 @@
+const { getOpenid, adminService } = require('./utils/api');
+const { getCloudEnv } = require('./utils/config');
+
 App({
-  onLaunch: function () {
+  onLaunch: function() {
     if (!wx.cloud) {
       console.error('请使用 2.2.3 或以上的基础库以使用云能力');
     } else {
       wx.cloud.init({
-        env: 'cloud1-4gttptha707c6d31',
-        traceUser: true,
+        env: getCloudEnv(),
+        traceUser: true
       });
     }
     
     this.globalData = {
       userInfo: null,
       openid: null,
-      isAdmin: false,
-      adminList: []
+      isAdmin: false
     };
     
-    this.getOpenid();
+    this.initUser();
   },
 
-  getOpenid: function() {
-    wx.cloud.callFunction({
-      name: 'getOpenid',
-      success: res => {
-        this.globalData.openid = res.result.openid;
-        this.checkAdmin();
-      },
-      fail: err => {
-        console.error('获取openid失败：', err);
-      }
-    });
-  },
-
-  getAdminList: function() {
-    return new Promise((resolve, reject) => {
-      const db = wx.cloud.database();
-      db.collection('config')
-        .doc('admins')
-        .get()
-        .then(res => {
-          const adminList = res.data.adminList || [];
-          this.globalData.adminList = adminList;
-          resolve(adminList);
-        })
-        .catch(err => {
-          console.error('获取管理员列表失败：', err);
-          resolve([]);
-        });
-    });
+  initUser: async function() {
+    try {
+      const result = await getOpenid();
+      this.globalData.openid = result.openid;
+      await this.checkAdmin();
+    } catch (err) {
+      console.error('初始化用户信息失败：', err);
+    }
   },
 
   checkAdmin: async function() {
-    const adminList = await this.getAdminList();
-    const openid = this.globalData.openid;
-    const isAdmin = adminList.includes(openid);
-    this.globalData.isAdmin = isAdmin;
-    
-    if (isAdmin) {
-      wx.setTabBarBadge({
-        index: 1,
-        text: '管'
-      });
-    } else {
-      wx.removeTabBarBadge({ index: 1 });
+    try {
+      const result = await adminService.check();
+      this.globalData.isAdmin = result.isAdmin;
+      
+      if (result.isAdmin) {
+        wx.setTabBarBadge({
+          index: 1,
+          text: '管'
+        });
+      } else {
+        wx.removeTabBarBadge({ index: 1 });
+      }
+      
+      return result.isAdmin;
+    } catch (err) {
+      console.error('检查管理员权限失败：', err);
+      this.globalData.isAdmin = false;
+      return false;
     }
   },
 
@@ -72,20 +59,22 @@ App({
     }
     
     if (this.globalData.openid) {
-      const adminList = await this.getAdminList();
-      const isAdmin = adminList.includes(this.globalData.openid);
-      this.globalData.isAdmin = isAdmin;
-      return isAdmin;
-    } else {
-      return new Promise((resolve) => {
-        this.getOpenid();
-        setTimeout(async () => {
-          const adminList = await this.getAdminList();
-          const isAdmin = adminList.includes(this.globalData.openid);
-          this.globalData.isAdmin = isAdmin;
-          resolve(isAdmin);
-        }, 1500);
-      });
+      return await this.checkAdmin();
     }
+    
+    return new Promise((resolve) => {
+      const checkInterval = setInterval(async () => {
+        if (this.globalData.openid) {
+          clearInterval(checkInterval);
+          const isAdmin = await this.checkAdmin();
+          resolve(isAdmin);
+        }
+      }, 100);
+      
+      setTimeout(() => {
+        clearInterval(checkInterval);
+        resolve(false);
+      }, 3000);
+    });
   }
 });

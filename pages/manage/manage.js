@@ -1,4 +1,6 @@
 const app = getApp();
+const { productService } = require('../../utils/api');
+const { formatTime, debounce, showError, showSuccess, showLoading, hideLoading, showConfirm, CATEGORIES, PAGE_SIZE, MAX_IMAGES, compressImage, previewImages } = require('../../utils/util');
 
 Page({
   data: {
@@ -16,40 +18,32 @@ Page({
       existingImages: [],
       newImages: []
     },
-    categories: ['雪糕', '冰淇淋', '冰棍', '其他'],
+    categories: CATEGORIES.filter(c => c !== '全部'),
     searchKeyword: '',
     currentCategory: '',
-    page: 0,
-    pageSize: 20,
     hasMore: true,
-    loadingMore: false
+    loadingMore: false,
+    lastId: null,
+    lastCreateTime: null
   },
 
-  searchTimer: null,
-
-  onLoad: function () {
+  onLoad: function() {
     this.checkPermission();
   },
 
-  onUnload: function () {
-    if (this.searchTimer) {
-      clearTimeout(this.searchTimer);
-    }
-  },
-
-  onShow: function () {
+  onShow: function() {
     if (this.data.hasPermission) {
       this.loadProducts();
     }
   },
 
-  onReachBottom: function () {
+  onReachBottom: function() {
     if (this.data.hasMore && !this.data.loadingMore && this.data.hasPermission) {
       this.loadMore();
     }
   },
 
-  checkPermission: async function () {
+  checkPermission: async function() {
     this.setData({ checking: true });
     try {
       const isAdmin = await app.checkAdminPermission();
@@ -70,176 +64,137 @@ Page({
     }
   },
 
-  formatTime: function (date) {
-    if (!date) return '';
-    let d;
-    if (typeof date === 'object' && date.$date) {
-      d = new Date(date.$date);
-    } else if (date instanceof Date) {
-      d = date;
-    } else {
-      d = new Date(date);
-    }
-    if (isNaN(d.getTime())) return '';
-    const year = d.getFullYear();
-    const month = (d.getMonth() + 1).toString().padStart(2, '0');
-    const day = d.getDate().toString().padStart(2, '0');
-    const hour = d.getHours().toString().padStart(2, '0');
-    const minute = d.getMinutes().toString().padStart(2, '0');
-    return `${year}-${month}-${day} ${hour}:${minute}`;
-  },
-
-  loadProducts: function () {
-    this.setData({ loading: true, page: 0, hasMore: true });
+  loadProducts: function() {
+    this.setData({ 
+      loading: true, 
+      lastId: null, 
+      lastCreateTime: null,
+      hasMore: true 
+    });
     
-    const db = wx.cloud.database();
-    let query = db.collection('products');
-    
-    if (this.data.currentCategory) {
-      query = query.where({ category: this.data.currentCategory });
-    }
-    
-    if (this.data.searchKeyword) {
-      query = query.where({
-        name: db.RegExp({
-          regexp: this.data.searchKeyword,
-          options: 'i'
-        })
-      });
-    }
-    
-    query
-      .orderBy('createTime', 'desc')
-      .limit(this.data.pageSize)
-      .get()
+    productService.getProducts({
+      category: this.data.currentCategory,
+      keyword: this.data.searchKeyword,
+      pageSize: PAGE_SIZE
+    })
       .then(res => {
-        const products = res.data.map(item => ({
+        const products = res.products.map(item => ({
           ...item,
-          createTimeFormatted: this.formatTime(item.createTime)
+          createTimeFormatted: formatTime(item.createTime)
         }));
+        
         this.setData({ 
           products: products,
           loading: false,
-          hasMore: res.data.length >= this.data.pageSize,
-          page: 1
+          hasMore: res.hasMore,
+          lastId: res.lastId,
+          lastCreateTime: res.lastCreateTime
         });
       })
       .catch(err => {
         console.error('加载商品失败：', err);
         this.setData({ loading: false });
-        wx.showToast({ title: '加载失败', icon: 'none' });
+        showError('加载失败');
       });
   },
 
-  loadMore: function () {
+  loadMore: function() {
     if (!this.data.hasMore || this.data.loadingMore) return;
     
     this.setData({ loadingMore: true });
     
-    const db = wx.cloud.database();
-    let query = db.collection('products');
-    
-    if (this.data.currentCategory) {
-      query = query.where({ category: this.data.currentCategory });
-    }
-    
-    if (this.data.searchKeyword) {
-      query = query.where({
-        name: db.RegExp({
-          regexp: this.data.searchKeyword,
-          options: 'i'
-        })
-      });
-    }
-    
-    query
-      .orderBy('createTime', 'desc')
-      .skip(this.data.page * this.data.pageSize)
-      .limit(this.data.pageSize)
-      .get()
+    productService.getProducts({
+      category: this.data.currentCategory,
+      keyword: this.data.searchKeyword,
+      lastId: this.data.lastId,
+      lastCreateTime: this.data.lastCreateTime,
+      pageSize: PAGE_SIZE
+    })
       .then(res => {
-        const newProducts = res.data.map(item => ({
+        const newProducts = res.products.map(item => ({
           ...item,
-          createTimeFormatted: this.formatTime(item.createTime)
+          createTimeFormatted: formatTime(item.createTime)
         }));
+        
         this.setData({ 
           products: [...this.data.products, ...newProducts],
           loadingMore: false,
-          hasMore: res.data.length >= this.data.pageSize,
-          page: this.data.page + 1
+          hasMore: res.hasMore,
+          lastId: res.lastId,
+          lastCreateTime: res.lastCreateTime
         });
       })
       .catch(err => {
         console.error('加载更多失败：', err);
         this.setData({ loadingMore: false });
+        showError('加载失败');
       });
   },
 
-  onSearchInput: function (e) {
+  onSearchInput: function(e) {
     const value = e.detail.value;
     this.setData({ searchKeyword: value });
-    
-    if (this.searchTimer) {
-      clearTimeout(this.searchTimer);
-    }
-    
-    this.searchTimer = setTimeout(() => {
-      this.setData({ page: 0, hasMore: true });
-      this.loadProducts();
-    }, 500);
+    this.debouncedSearch(value);
   },
 
-  clearSearch: function () {
-    if (this.searchTimer) {
-      clearTimeout(this.searchTimer);
-    }
-    this.setData({ searchKeyword: '' });
-    this.loadProducts();
-  },
-
-  onCategoryFilter: function (e) {
-    const category = e.currentTarget.dataset.category;
-    this.setData({ currentCategory: category === this.data.currentCategory ? '' : category });
-    this.loadProducts();
-  },
-
-  deleteProduct: function (e) {
-    const product = e.currentTarget.dataset.product;
-    wx.showModal({
-      title: '确认删除',
-      content: `确定要删除「${product.name}」吗？此操作不可恢复。`,
-      confirmColor: '#ff4d4f',
-      success: (res) => {
-        if (res.confirm) {
-          this.doDelete(product);
-        }
-      }
+  debouncedSearch: debounce(function(keyword) {
+    this.setData({ 
+      lastId: null, 
+      lastCreateTime: null,
+      hasMore: true 
     });
+    this.loadProducts();
+  }, 500),
+
+  clearSearch: function() {
+    this.setData({ 
+      searchKeyword: '',
+      lastId: null, 
+      lastCreateTime: null,
+      hasMore: true 
+    });
+    this.loadProducts();
   },
 
-  doDelete: async function (product) {
-    wx.showLoading({ title: '删除中...', mask: true });
+  onCategoryFilter: function(e) {
+    const category = e.currentTarget.dataset.category;
+    this.setData({ 
+      currentCategory: category === this.data.currentCategory ? '' : category,
+      lastId: null, 
+      lastCreateTime: null,
+      hasMore: true 
+    });
+    this.loadProducts();
+  },
+
+  deleteProduct: async function(e) {
+    const product = e.currentTarget.dataset.product;
+    const confirmed = await showConfirm('确认删除', `确定要删除「${product.name}」吗？此操作不可恢复。`);
+    
+    if (confirmed) {
+      this.doDelete(product);
+    }
+  },
+
+  doDelete: async function(product) {
+    showLoading('删除中...');
+    
     try {
-      const db = wx.cloud.database();
-      await db.collection('products').doc(product._id).remove();
+      await productService.deleteProduct(product._id, product.fileIDs);
       
-      if (product.fileIDs && product.fileIDs.length > 0) {
-        await wx.cloud.deleteFile({ fileList: product.fileIDs }).catch(() => {});
-      }
-      
-      wx.hideLoading();
-      wx.showToast({ title: '删除成功', icon: 'success' });
+      hideLoading();
+      showSuccess('删除成功');
       
       const products = this.data.products.filter(p => p._id !== product._id);
       this.setData({ products });
     } catch (err) {
-      wx.hideLoading();
+      hideLoading();
       console.error('删除失败：', err);
-      wx.showToast({ title: '删除失败', icon: 'none' });
+      showError(err.message || '删除失败');
     }
   },
 
-  showEditModal: function (e) {
+  showEditModal: function(e) {
     const product = e.currentTarget.dataset.product;
     const existingImages = (product.fileIDs || [product.fileID]).filter(img => img);
     
@@ -257,21 +212,20 @@ Page({
     });
   },
 
-  hideEditModal: function () {
+  hideEditModal: function() {
     this.setData({ showEditModal: false, editingProduct: null });
   },
 
-  preventBubble: function () {
-  },
+  preventBubble: function() {},
 
-  onEditInput: function (e) {
+  onEditInput: function(e) {
     const field = e.currentTarget.dataset.field;
     this.setData({
       [`editForm.${field}`]: e.detail.value
     });
   },
 
-  onCategoryChange: function (e) {
+  onCategoryChange: function(e) {
     this.setData({
       'editForm.category': this.data.categories[e.detail.value]
     });
@@ -282,12 +236,12 @@ Page({
     return [...existingImages, ...newImages];
   },
 
-  chooseEditImage: function () {
+  chooseEditImage: function() {
     const totalImages = this.data.editForm.existingImages.length + this.data.editForm.newImages.length;
-    const maxCount = 9 - totalImages;
+    const maxCount = MAX_IMAGES - totalImages;
     
     if (maxCount <= 0) {
-      wx.showToast({ title: '最多上传9张图片', icon: 'none' });
+      showError('最多上传9张图片');
       return;
     }
 
@@ -305,7 +259,7 @@ Page({
     });
   },
 
-  deleteEditImage: function (e) {
+  deleteEditImage: function(e) {
     const index = e.currentTarget.dataset.index;
     const { existingImages, newImages } = this.data.editForm;
     const existingCount = existingImages.length;
@@ -326,27 +280,13 @@ Page({
     }
   },
 
-  previewEditImage: function (e) {
+  previewEditImage: function(e) {
     const index = e.currentTarget.dataset.index;
     const allImages = this.getAllImages();
-    wx.previewImage({
-      current: allImages[index],
-      urls: allImages
-    });
+    previewImages(allImages[index], allImages);
   },
 
-  compressImage: function (tempFilePath) {
-    return new Promise((resolve) => {
-      wx.compressImage({
-        src: tempFilePath,
-        quality: 80,
-        success: res => resolve(res.tempFilePath),
-        fail: () => resolve(tempFilePath)
-      });
-    });
-  },
-
-  uploadNewImages: async function () {
+  uploadNewImages: async function() {
     const newImages = this.data.editForm.newImages;
     if (newImages.length === 0) return [];
     
@@ -354,7 +294,7 @@ Page({
     
     for (let i = 0; i < newImages.length; i++) {
       const tempFilePath = newImages[i];
-      const compressedPath = await this.compressImage(tempFilePath);
+      const compressedPath = await compressImage(tempFilePath);
       const cloudPath = `products/${Date.now()}-${Math.random().toString(36).substr(2, 9)}-${i}.jpg`;
       
       const promise = wx.cloud.uploadFile({
@@ -368,26 +308,26 @@ Page({
     return Promise.all(uploadPromises);
   },
 
-  submitEdit: async function () {
+  submitEdit: async function() {
     const { editForm, editingProduct } = this.data;
     const totalImages = editForm.existingImages.length + editForm.newImages.length;
     
     if (!editForm.name.trim()) {
-      wx.showToast({ title: '请输入商品名称', icon: 'none' });
+      showError('请输入商品名称');
       return;
     }
     
     if (!editForm.spec.trim()) {
-      wx.showToast({ title: '请输入商品规格', icon: 'none' });
+      showError('请输入商品规格');
       return;
     }
     
     if (totalImages === 0) {
-      wx.showToast({ title: '请至少保留一张图片', icon: 'none' });
+      showError('请至少保留一张图片');
       return;
     }
     
-    wx.showLoading({ title: '保存中...', mask: true });
+    showLoading('保存中...');
     
     try {
       const newFileIDs = await this.uploadNewImages();
@@ -403,39 +343,31 @@ Page({
       
       const allFileIDs = [...editForm.existingImages, ...newFileIDs];
       
-      const db = wx.cloud.database();
-      await db.collection('products').doc(editingProduct._id).update({
-        data: {
-          name: editForm.name.trim(),
-          spec: editForm.spec.trim(),
-          description: editForm.description.trim(),
-          category: editForm.category,
-          fileID: allFileIDs[0],
-          fileIDs: allFileIDs,
-          updateTime: db.serverDate()
-        }
+      await productService.updateProduct(editingProduct._id, {
+        name: editForm.name.trim(),
+        spec: editForm.spec.trim(),
+        description: editForm.description.trim(),
+        category: editForm.category,
+        fileIDs: allFileIDs
       });
       
-      wx.hideLoading();
-      wx.showToast({ title: '保存成功', icon: 'success' });
+      hideLoading();
+      showSuccess('保存成功');
       this.hideEditModal();
       this.loadProducts();
     } catch (err) {
-      wx.hideLoading();
+      hideLoading();
       console.error('保存失败：', err);
-      wx.showToast({ title: '保存失败', icon: 'none' });
+      showError(err.message || '保存失败');
     }
   },
 
-  goToAddProduct: function () {
+  goToAddProduct: function() {
     wx.navigateTo({ url: '/pages/admin/admin' });
   },
 
-  previewImage: function (e) {
+  previewImage: function(e) {
     const url = e.currentTarget.dataset.url;
-    wx.previewImage({
-      current: url,
-      urls: [url]
-    });
+    previewImages(url, [url]);
   }
 });

@@ -2,6 +2,7 @@
   <view class="header">
     <text class="title">🍦 雪糕批发</text>
     <text class="subtitle">新鲜直达 品质保证</text>
+    <view class="settings-btn" bindtap="goToSettings">⚙️</view>
   </view>
 
   <view class="search-bar">

@@ -1,0 +1,19 @@
+{
+  "name": "icecream-sale",
+  "version": "1.0.0",
+  "description": "雪糕批发店小程序",
+  "scripts": {
+    "lint": "eslint --ext .js pages/ utils/ cloudfunctions/",
+    "lint:fix": "eslint --ext .js pages/ utils/ cloudfunctions/ --fix"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.0",
+    "eslint-config-standard": "^17.1.0",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-n": "^16.6.2",
+    "eslint-plugin-promise": "^6.1.1"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

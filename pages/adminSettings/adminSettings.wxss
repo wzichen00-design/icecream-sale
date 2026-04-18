@@ -1,0 +1,169 @@
+.container {
+  padding: 20rpx;
+  padding-bottom: 40rpx;
+}
+
+.section {
+  background-color: #fff;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 20rpx;
+}
+
+.info-card {
+  background-color: #f5f5f5;
+  border-radius: 12rpx;
+  padding: 20rpx;
+}
+
+.info-row {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 15rpx;
+}
+
+.label {
+  font-size: 26rpx;
+  color: #666;
+  flex-shrink: 0;
+}
+
+.value {
+  font-size: 26rpx;
+  color: #333;
+  word-break: break-all;
+}
+
+.value.openid {
+  font-family: monospace;
+  font-size: 22rpx;
+  color: #1890ff;
+}
+
+.copy-btn {
+  width: 100%;
+  height: 70rpx;
+  background-color: #1890ff;
+  color: #fff;
+  font-size: 28rpx;
+  border-radius: 12rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.copy-btn::after {
+  border: none;
+}
+
+.add-form {
+  display: flex;
+  gap: 15rpx;
+  margin-bottom: 15rpx;
+}
+
+.input {
+  flex: 1;
+  height: 80rpx;
+  background-color: #f5f5f5;
+  border-radius: 12rpx;
+  padding: 0 20rpx;
+  font-size: 28rpx;
+}
+
+.add-btn {
+  width: 160rpx;
+  height: 80rpx;
+  background-color: #52c41a;
+  color: #fff;
+  font-size: 28rpx;
+  border-radius: 12rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.add-btn::after {
+  border: none;
+}
+
+.tip {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.loading, .empty {
+  text-align: center;
+  padding: 40rpx;
+  color: #999;
+  font-size: 28rpx;
+}
+
+.init-btn {
+  margin-top: 20rpx;
+  background-color: #FF6B6B;
+  color: #fff;
+  font-size: 28rpx;
+  padding: 20rpx 40rpx;
+  border-radius: 12rpx;
+}
+
+.init-btn::after {
+  border: none;
+}
+
+.admin-list {
+  border-top: 1rpx solid #f0f0f0;
+}
+
+.admin-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 25rpx 0;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.admin-item:last-child {
+  border-bottom: none;
+}
+
+.admin-info {
+  display: flex;
+  align-items: center;
+  gap: 15rpx;
+  flex: 1;
+  overflow: hidden;
+}
+
+.admin-openid {
+  font-size: 24rpx;
+  color: #333;
+  font-family: monospace;
+  word-break: break-all;
+}
+
+.self-tag {
+  font-size: 20rpx;
+  color: #fff;
+  background-color: #1890ff;
+  padding: 4rpx 12rpx;
+  border-radius: 6rpx;
+  flex-shrink: 0;
+}
+
+.remove-btn {
+  font-size: 26rpx;
+  color: #ff4d4f;
+  padding: 10rpx 20rpx;
+  border: 1rpx solid #ff4d4f;
+  border-radius: 8rpx;
+  flex-shrink: 0;
+}

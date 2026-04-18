@@ -1,0 +1,4 @@
+{
+  "read": true,
+  "write": "auth.openid in get('database.config.admins').adminList"
+}

@@ -13,6 +13,7 @@ page {
   justify-content: center;
   padding: 20rpx 0;
   margin-bottom: 15rpx;
+  position: relative;
 }
 
 .title {
@@ -25,6 +26,15 @@ page {
 .subtitle {
   font-size: 24rpx;
   color: #999;
+}
+
+.settings-btn {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 36rpx;
+  padding: 10rpx;
 }
 
 .search-bar {

@@ -1,0 +1,52 @@
+<view class="container">
+  <view class="section">
+    <view class="section-title">当前用户信息</view>
+    <view class="info-card">
+      <view class="info-row">
+        <text class="label">你的 OpenID：</text>
+        <text class="value openid">{{currentOpenid}}</text>
+      </view>
+      <button class="copy-btn" bindtap="copyOpenid">复制 OpenID</button>
+    </view>
+  </view>
+
+  <view class="section">
+    <view class="section-title">添加管理员</view>
+    <view class="add-form">
+      <input 
+        class="input" 
+        placeholder="输入用户的 OpenID"
+        value="{{newOpenid}}"
+        bindinput="onInputChange"
+      />
+      <button class="add-btn" bindtap="addAdmin">添加</button>
+    </view>
+    <view class="tip">提示：让用户先打开小程序获取其 OpenID，然后在此添加</view>
+  </view>
+
+  <view class="section">
+    <view class="section-title">管理员列表 ({{adminList.length}}人)</view>
+    
+    <view wx:if="{{loading}}" class="loading">加载中...</view>
+    
+    <view wx:elif="{{adminList.length === 0}}" class="empty">
+      <text>暂无管理员</text>
+      <button class="init-btn" bindtap="initAdmin">初始化管理员配置</button>
+    </view>
+    
+    <view wx:else class="admin-list">
+      <view class="admin-item" wx:for="{{adminList}}" wx:key="*this">
+        <view class="admin-info">
+          <text class="admin-openid">{{item}}</text>
+          <text wx:if="{{item === currentOpenid}}" class="self-tag">当前用户</text>
+        </view>
+        <view 
+          wx:if="{{item !== currentOpenid && isAdmin}}" 
+          class="remove-btn" 
+          bindtap="removeAdmin" 
+          data-openid="{{item}}"
+        >移除</view>
+      </view>
+    </view>
+  </view>
+</view>

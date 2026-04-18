@@ -1,4 +1,6 @@
 const app = getApp();
+const { productService } = require('../../utils/api');
+const { showError, showSuccess, showLoading, hideLoading, CATEGORIES, MAX_IMAGES, uploadImages, chooseImages, previewImages } = require('../../utils/util');
 
 Page({
   data: {
@@ -10,15 +12,15 @@ Page({
     hasPermission: false,
     checking: true,
     category: '',
-    categories: ['请选择分类', '雪糕', '冰淇淋', '冰棍', '其他'],
+    categories: CATEGORIES.filter(c => c !== '全部'),
     categoryIndex: 0
   },
 
-  onLoad: function () {
+  onLoad: function() {
     this.checkPermission();
   },
 
-  checkPermission: async function () {
+  checkPermission: async function() {
     this.setData({ checking: true });
     try {
       const isAdmin = await app.checkAdminPermission();
@@ -42,12 +44,12 @@ Page({
     }
   },
 
-  onInputChange: function (e) {
+  onInputChange: function(e) {
     const field = e.currentTarget.dataset.field;
     this.setData({ [field]: e.detail.value });
   },
 
-  onCategoryChange: function (e) {
+  onCategoryChange: function(e) {
     const index = e.detail.value;
     if (index === 0) {
       this.setData({
@@ -62,132 +64,72 @@ Page({
     }
   },
 
-  chooseImage: function () {
-    const maxCount = 9 - this.data.imageList.length;
-    if (maxCount <= 0) {
-      wx.showToast({ title: '最多上传9张图片', icon: 'none' });
-      return;
-    }
-
-    wx.chooseMedia({
-      count: maxCount,
-      mediaType: ['image'],
-      sourceType: ['album', 'camera'],
-      success: (res) => {
-        const tempFiles = res.tempFiles;
-        const newImages = tempFiles.map(file => ({
-          tempFilePath: file.tempFilePath,
-          uploading: false,
-          fileID: null
-        }));
-        this.setData({ imageList: [...this.data.imageList, ...newImages] });
+  chooseImage: async function() {
+    try {
+      const newImages = await chooseImages(MAX_IMAGES, this.data.imageList.length);
+      this.setData({ imageList: [...this.data.imageList, ...newImages] });
+    } catch (err) {
+      if (err.message !== '已达到最大图片数量') {
+        console.error('选择图片失败：', err);
       }
-    });
+    }
   },
 
-  deleteImage: function (e) {
+  deleteImage: function(e) {
     const index = e.currentTarget.dataset.index;
-    const imageList = this.data.imageList;
+    const imageList = [...this.data.imageList];
     imageList.splice(index, 1);
     this.setData({ imageList });
   },
 
-  previewImage: function (e) {
+  previewImage: function(e) {
     const url = e.currentTarget.dataset.url;
-    const urls = this.data.imageList.map(img => img.tempFilePath || img.fileID);
-    wx.previewImage({ current: url, urls: urls });
+    previewImages(url, this.data.imageList);
   },
 
-  compressImage: function (tempFilePath) {
-    return new Promise((resolve, reject) => {
-      wx.compressImage({
-        src: tempFilePath,
-        quality: 80,
-        success: res => resolve(res.tempFilePath),
-        fail: err => resolve(tempFilePath)
-      });
-    });
-  },
-
-  uploadImages: async function () {
-    const imageList = this.data.imageList;
-    const uploadPromises = [];
-    
-    for (let i = 0; i < imageList.length; i++) {
-      const img = imageList[i];
-      if (img.fileID) continue;
-      
-      const compressedPath = await this.compressImage(img.tempFilePath);
-      const cloudPath = `products/${Date.now()}-${Math.random().toString(36).substr(2, 9)}-${i}.jpg`;
-      
-      const promise = wx.cloud.uploadFile({
-        cloudPath: cloudPath,
-        filePath: compressedPath
-      }).then(res => {
-        imageList[i].fileID = res.fileID;
-        return res.fileID;
-      });
-      
-      uploadPromises.push(promise);
-    }
-    
-    return Promise.all(uploadPromises);
-  },
-
-  submitProduct: async function () {
+  submitProduct: async function() {
     const { name, description, spec, imageList, category } = this.data;
     
     if (!name.trim()) {
-      wx.showToast({ title: '请输入商品名称', icon: 'none' });
+      showError('请输入商品名称');
       return;
     }
     
     if (!spec.trim()) {
-      wx.showToast({ title: '请输入商品规格', icon: 'none' });
+      showError('请输入商品规格');
       return;
     }
     
     if (imageList.length === 0) {
-      wx.showToast({ title: '请至少上传一张图片', icon: 'none' });
+      showError('请至少上传一张图片');
       return;
     }
 
     this.setData({ submitting: true });
-    wx.showLoading({ title: '发布中...', mask: true });
+    showLoading('发布中...');
 
     try {
-      await this.uploadImages();
-      const fileIDs = this.data.imageList.map(img => img.fileID).filter(id => id);
+      const fileIDs = await uploadImages(imageList);
       
-      const db = wx.cloud.database();
-      await db.collection('products').add({
-        data: {
-          name: name.trim(),
-          description: description.trim(),
-          spec: spec.trim(),
-          category: category,
-          fileID: fileIDs[0],
-          fileIDs: fileIDs,
-          createTime: db.serverDate(),
-          updateTime: db.serverDate()
-        }
+      await productService.addProduct({
+        name: name.trim(),
+        description: description.trim(),
+        spec: spec.trim(),
+        category: category,
+        fileIDs: fileIDs
       });
 
-      wx.hideLoading();
-      wx.showToast({ 
-        title: '发布成功', 
-        icon: 'success',
-        duration: 1500
-      });
+      hideLoading();
+      showSuccess('发布成功');
       
       setTimeout(() => {
         wx.switchTab({ url: '/pages/manage/manage' });
       }, 1500);
       
     } catch (err) {
-      wx.hideLoading();
+      hideLoading();
       console.error('发布失败：', err);
-      wx.showToast({ title: '发布失败，请重试', icon: 'none' });
+      showError(err.message || '发布失败，请重试');
       this.setData({ submitting: false });
     }
   }
