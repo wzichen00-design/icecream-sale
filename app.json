@@ -8,7 +8,7 @@
   "window": {
     "backgroundTextStyle": "light",
     "navigationBarBackgroundColor": "#FF6B6B",
-    "navigationBarTitleText": "雪糕批发店",
+    "navigationBarTitleText": "雪糕图片展示",
     "navigationBarTextStyle": "white"
   },
   "tabBar": {
@@ -25,7 +25,7 @@
       },
       {
         "pagePath": "pages/manage/manage",
-        "text": "商品管理",
+        "text": "后台管理",
         "iconPath": "images/admin.png",
         "selectedIconPath": "images/admin-active.png"
       }

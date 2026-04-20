@@ -6,7 +6,7 @@
   <view wx:elif="{{!hasPermission}}" class="no-permission">
     <text class="icon">🔒</text>
     <text class="title">无访问权限</text>
-    <text class="desc">您不是管理员，无法访问商品管理功能</text>
+    <text class="desc">您不是管理员，无法访问后台管理功能</text>
     <text class="tip">如需开通权限，请联系店主</text>
   </view>
 
@@ -17,7 +17,7 @@
           <text class="search-icon">🔍</text>
           <input 
             class="search-input" 
-            placeholder="搜索商品名称"
+            placeholder="搜索雪糕名称"
             value="{{searchKeyword}}"
             bindinput="onSearchInput"
           />
@@ -48,8 +48,8 @@
 
     <view wx:elif="{{products.length === 0}}" class="empty">
       <text class="empty-icon">📦</text>
-      <text class="empty-text">暂无商品</text>
-      <button class="empty-btn" bindtap="goToAddProduct">发布第一个商品</button>
+      <text class="empty-text">暂无雪糕</text>
+      <button class="empty-btn" bindtap="goToAddProduct">发布第一个雪糕</button>
     </view>
 
     <view wx:else class="product-list">
@@ -84,7 +84,7 @@
     </view>
 
     <view wx:if="{{!hasMore && products.length > 0}}" class="no-more">
-      <text>— 共 {{products.length}} 个商品 —</text>
+      <text>— 共 {{products.length}} 个雪糕 —</text>
     </view>
   </block>
 </view>
@@ -92,30 +92,30 @@
 <view class="modal-mask" wx:if="{{showEditModal}}" bindtap="hideEditModal">
   <view class="modal-content" catchtap="">
     <view class="modal-header">
-      <text class="modal-title">编辑商品</text>
+      <text class="modal-title">编辑雪糕</text>
       <view class="modal-close" bindtap="hideEditModal">×</view>
     </view>
     <view class="modal-body">
       <view class="form-item" catchtap="preventBubble">
-        <text class="label">商品名称 *</text>
-        <input class="input" value="{{editForm.name}}" bindinput="onEditInput" data-field="name" placeholder="请输入商品名称" />
+        <text class="label">雪糕名称 *</text>
+        <input class="input" value="{{editForm.name}}" bindinput="onEditInput" data-field="name" placeholder="请输入雪糕名称" />
       </view>
       <view class="form-item" catchtap="preventBubble">
-        <text class="label">商品规格 *</text>
-        <input class="input" value="{{editForm.spec}}" bindinput="onEditInput" data-field="spec" placeholder="请输入商品规格" />
+        <text class="label">雪糕规格 *</text>
+        <input class="input" value="{{editForm.spec}}" bindinput="onEditInput" data-field="spec" placeholder="请输入雪糕规格" />
       </view>
       <view class="form-item" catchtap="preventBubble">
-        <text class="label">商品分类</text>
+        <text class="label">雪糕分类</text>
         <picker mode="selector" range="{{categories}}" bindchange="onCategoryChange">
           <view class="picker">{{editForm.category || '请选择分类'}}</view>
         </picker>
       </view>
       <view class="form-item" catchtap="preventBubble">
-        <text class="label">商品介绍</text>
-        <textarea class="textarea" value="{{editForm.description}}" bindinput="onEditInput" data-field="description" placeholder="请输入商品介绍" />
+        <text class="label">雪糕介绍</text>
+        <textarea class="textarea" value="{{editForm.description}}" bindinput="onEditInput" data-field="description" placeholder="请输入雪糕介绍" />
       </view>
       <view class="form-item" catchtap="preventBubble">
-        <text class="label">商品图片 <text class="label-tip">(最多9张)</text></text>
+        <text class="label">雪糕图片 <text class="label-tip">(最多9张)</text></text>
         <view class="image-list">
           <block wx:for="{{editForm.existingImages}}" wx:key="*this">
             <view class="image-item">

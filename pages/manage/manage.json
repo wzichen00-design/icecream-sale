@@ -1,5 +1,5 @@
 {
-  "navigationBarTitleText": "商品管理",
+  "navigationBarTitleText": "后台管理",
   "enablePullDownRefresh": false,
   "onReachBottomDistance": 100,
   "usingComponents": {}

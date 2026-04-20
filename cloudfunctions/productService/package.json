@@ -1,7 +1,7 @@
 {
   "name": "productService",
   "version": "1.0.0",
-  "description": "商品服务云函数 - 统一处理商品相关操作",
+  "description": "雪糕服务云函数 - 统一处理雪糕相关操作",
   "main": "index.js",
   "dependencies": {
     "wx-server-sdk": "~2.6.3"

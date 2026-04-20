@@ -42,7 +42,7 @@
 |----------|------|
 | getOpenid | 获取用户 OpenID |
 | manageAdmin | 管理员管理 |
-| productService | 商品服务 |
+| productService | 雪糕服务 |
 
 ---
 
@@ -281,23 +281,23 @@ const result = await adminService.remove('oXXXX-xxxxxxxxxxxxxxxx');
 
 ## productService
 
-商品相关操作。
+雪糕相关操作。
 
 ### Actions
 
 | Action | 说明 | 权限 |
 |--------|------|------|
-| getProducts | 获取商品列表 | 无需权限 |
-| addProduct | 添加商品 | 管理员 |
-| updateProduct | 更新商品 | 管理员 |
-| deleteProduct | 删除商品 | 管理员 |
+| getProducts | 获取雪糕列表 | 无需权限 |
+| addProduct | 添加雪糕 | 管理员 |
+| updateProduct | 更新雪糕 | 管理员 |
+| deleteProduct | 删除雪糕 | 管理员 |
 | checkPermission | 检查权限 | 无需权限 |
 
 ---
 
-### getProducts - 获取商品列表
+### getProducts - 获取雪糕列表
 
-获取商品列表，支持分页、搜索、分类筛选。
+获取雪糕列表，支持分页、搜索、分类筛选。
 
 #### 请求参数
 
@@ -379,9 +379,9 @@ const result = await productService.getProducts({
 
 ---
 
-### addProduct - 添加商品
+### addProduct - 添加雪糕
 
-添加新商品。
+添加新雪糕。
 
 #### 请求参数
 
@@ -402,10 +402,10 @@ const result = await productService.getProducts({
 
 | 参数 | 类型 | 必填 | 说明 |
 |------|------|------|------|
-| name | string | 是 | 商品名称 |
-| spec | string | 是 | 商品规格 |
-| description | string | 否 | 商品描述 |
-| category | string | 否 | 商品分类 |
+| name | string | 是 | 雪糕名称 |
+| spec | string | 是 | 雪糕规格 |
+| description | string | 否 | 雪糕描述 |
+| category | string | 否 | 雪糕分类 |
 | fileIDs | array | 是 | 图片地址列表 |
 
 #### 调用示例
@@ -435,9 +435,9 @@ const result = await productService.addProduct({
 
 ---
 
-### updateProduct - 更新商品
+### updateProduct - 更新雪糕
 
-更新商品信息。
+更新雪糕信息。
 
 #### 请求参数
 
@@ -459,11 +459,11 @@ const result = await productService.addProduct({
 
 | 参数 | 类型 | 必填 | 说明 |
 |------|------|------|------|
-| productId | string | 是 | 商品 ID |
-| name | string | 是 | 商品名称 |
-| spec | string | 是 | 商品规格 |
-| description | string | 否 | 商品描述 |
-| category | string | 否 | 商品分类 |
+| productId | string | 是 | 雪糕 ID |
+| name | string | 是 | 雪糕名称 |
+| spec | string | 是 | 雪糕规格 |
+| description | string | 否 | 雪糕描述 |
+| category | string | 否 | 雪糕分类 |
 | fileIDs | array | 是 | 图片地址列表 |
 
 #### 调用示例
@@ -490,9 +490,9 @@ const result = await productService.updateProduct('xxx', {
 
 ---
 
-### deleteProduct - 删除商品
+### deleteProduct - 删除雪糕
 
-软删除商品。
+软删除雪糕。
 
 #### 请求参数
 
@@ -510,7 +510,7 @@ const result = await productService.updateProduct('xxx', {
 
 | 参数 | 类型 | 必填 | 说明 |
 |------|------|------|------|
-| productId | string | 是 | 商品 ID |
+| productId | string | 是 | 雪糕 ID |
 | fileIDs | array | 否 | 要删除的图片地址列表 |
 
 #### 调用示例
@@ -625,10 +625,10 @@ try {
 ```javascript
 const { productService, adminService, getOpenid } = require('../../utils/api');
 
-// 获取商品列表
+// 获取雪糕列表
 const products = await productService.getProducts({ pageSize: 10 });
 
-// 添加商品
+// 添加雪糕
 await productService.addProduct({ name: 'xxx', ... });
 
 // 检查权限
@@ -697,7 +697,7 @@ const nextPage = await productService.getProducts({
 
 ### 4. 图片上传
 
-先上传图片获取 fileID，再调用添加商品接口：
+先上传图片获取 fileID，再调用添加雪糕接口：
 
 ```javascript
 // 1. 上传图片
@@ -706,7 +706,7 @@ const uploadResult = await wx.cloud.uploadFile({
   filePath: tempFilePath
 });
 
-// 2. 添加商品
+// 2. 添加雪糕
 await productService.addProduct({
   name: 'xxx',
   fileIDs: [uploadResult.fileID]

@@ -1,12 +1,12 @@
 <view class="container">
   <view class="form-section">
-    <view class="section-title">商品信息</view>
+    <view class="section-title">雪糕信息</view>
     
     <view class="form-item">
-      <text class="label">商品名称 *</text>
+      <text class="label">雪糕名称 *</text>
       <input 
         class="input" 
-        placeholder="请输入商品名称"
+        placeholder="请输入雪糕名称"
         value="{{name}}"
         bindinput="onInputChange"
         data-field="name"
@@ -15,7 +15,7 @@
     </view>
 
     <view class="form-item">
-      <text class="label">商品规格 *</text>
+      <text class="label">雪糕规格 *</text>
       <input 
         class="input" 
         placeholder="如：10支/箱、500ml/瓶"
@@ -27,17 +27,17 @@
     </view>
 
     <view class="form-item">
-      <text class="label">商品分类</text>
+      <text class="label">雪糕分类</text>
       <picker mode="selector" range="{{categories}}" value="{{categoryIndex}}" bindchange="onCategoryChange">
         <view class="picker">{{category || '请选择分类'}}</view>
       </picker>
     </view>
 
     <view class="form-item">
-      <text class="label">商品介绍</text>
+      <text class="label">雪糕介绍</text>
       <textarea 
         class="textarea" 
-        placeholder="请输入商品介绍"
+        placeholder="请输入雪糕介绍"
         value="{{description}}"
         bindinput="onInputChange"
         data-field="description"
@@ -49,7 +49,7 @@
 
   <view class="form-section">
     <view class="section-title">
-      商品图片 
+      雪糕图片 
       <text class="tip">(最多9张)</text>
     </view>
     
@@ -83,6 +83,6 @@
     bindtap="submitProduct"
     disabled="{{submitting}}"
   >
-    {{submitting ? '发布中...' : '发布商品'}}
+    {{submitting ? '发布中...' : '发布雪糕'}}
   </button>
 </view>

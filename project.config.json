@@ -46,8 +46,8 @@
   },
   "appid": "wxbdc6d55c292412bf",
   "projectname": "icecream-sale",
-  "description": "雪糕批发店小程序",
-  "cloudfunctionTemplateRoot": "",
+  "description": "雪糕图片展示小程序",
+  "cloudfunctionTemplateRoot": "cloudfunctionTemplate/",
   "condition": {},
   "editorSetting": {
     "tabIndent": "insertSpaces",

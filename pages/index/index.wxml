@@ -1,7 +1,6 @@
 <view class="container">
   <view class="header">
-    <text class="title">🍦 雪糕批发</text>
-    <text class="subtitle">新鲜直达 品质保证</text>
+    <text class="title">🍦 雪糕图片展示</text>
     <view class="settings-btn" bindtap="goToSettings">⚙️</view>
   </view>
 
@@ -10,7 +9,7 @@
       <text class="search-icon">🔍</text>
       <input 
         class="search-input" 
-        placeholder="搜索商品名称"
+        placeholder="搜索雪糕名称"
         value="{{searchKeyword}}"
         bindinput="onSearchInput"
       />
@@ -54,7 +53,7 @@
 
   <view wx:elif="{{products.length === 0}}" class="empty">
     <text class="empty-icon">📭</text>
-    <text class="empty-text">暂无商品</text>
+    <text class="empty-text">暂无雪糕</text>
     <text class="empty-tip">请尝试其他搜索条件</text>
   </view>
 
